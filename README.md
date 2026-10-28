@@ -17,6 +17,12 @@ Trygonometria warsztatowa na jednej ręce — jak stara ściąga frezera, tylko 
 Wpisujesz jak na rysunku — stopnie dziesiętnie (30,5) albo stopnie-minuty-sekundy (30 30, 30°30′15″).
 Wyniki kątów apka podaje w obu formatach jednocześnie.
 
+## Grafiki
+
+Interaktywne SVG rysują się z wyników i przerysowują **na żywo przy każdym wpisaniu**
+(klin z klockami i łukiem α; trójkąt w skali z kątem prostym, łukami α/β i wysokością h;
+trójkąt na podstawie 100 mm w zakładce Funkcje).
+
 ## Pliki
 
 - `index.html` — cała apka (vanilla JS, bez zależności)

@@ -148,7 +148,7 @@
 
 <footer>
   Trygonometria warsztatowa: kliny sinusowe 100–300 mm, funkcje kąta, trójkąt prostokątny.<br>
-  Apka offline (PWA) · wersja 1.0
+  Apka offline (PWA) · wersja 1.1 · grafiki rysują się na żywo
 </footer>
 
 <script>
@@ -226,6 +226,78 @@ function solveTri(o){ // o: {a,b,c,al} — dokładnie 2 podane, reszta null
   return {a:a,b:b,c:c,al:al,beta:beta,P:a*b/2,h:a*b/c};
 }
 
+/* ===== GRAFIKI SVG (rysują się z wyników, żywo przy wpisywaniu) ===== */
+const AMB='#fbbf24',ORG='#d97706',GRY='#94a3b8';
+function svgWrap(w,h,inner){
+  return '<svg viewBox="0 0 '+Math.round(w)+' '+Math.round(h)+'" style="width:100%;max-width:400px;display:block;margin:.2rem auto" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
+}
+function nrm(d){while(d<=-Math.PI)d+=2*Math.PI;while(d>Math.PI)d-=2*Math.PI;return d;}
+function arcPath(vx,vy,t1x,t1y,t2x,t2y,r){
+  const a1=Math.atan2(t1y-vy,t1x-vx),a2=Math.atan2(t2y-vy,t2x-vx);
+  const d=nrm(a2-a1);
+  const p1x=vx+r*Math.cos(a1),p1y=vy+r*Math.sin(a1);
+  const p2x=vx+r*Math.cos(a2),p2y=vy+r*Math.sin(a2);
+  const am=a1+d/2;
+  return {path:'M'+p1x.toFixed(1)+' '+p1y.toFixed(1)+' A '+r+' '+r+' 0 0 '+(d>=0?1:0)+' '+p2x.toFixed(1)+' '+p2y.toFixed(1),
+    lx:vx+(r+16)*Math.cos(am),ly:vy+(r+16)*Math.sin(am)};
+}
+function svgKlin(ang,L,H){
+  const sc=Math.min(320/L,230/(H||1e-9));
+  const wpx=Math.min(16,L*sc*0.12);
+  const PL=14,PR=74,PB=30,PT=10;
+  const W=PL+L*sc+PR,Hg=PT+H*sc+PB;
+  const X=function(x){return PL+x*sc;},Y=function(y){return Hg-PB-y*sc;};
+  let s='';
+  s+='<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+X(L)+'" y2="'+Y(0)+'" stroke="'+GRY+'" stroke-width="1.5" stroke-dasharray="5 5" opacity=".7"/>';
+  s+='<rect x="'+(X(L)-wpx)+'" y="'+Y(H)+'" width="'+wpx+'" height="'+(H*sc)+'" fill="'+ORG+'" opacity=".85" stroke="'+AMB+'" stroke-width="1.5" rx="2"/>';
+  s+='<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+X(L)+'" y2="'+Y(H)+'" stroke="'+AMB+'" stroke-width="5" stroke-linecap="round"/>';
+  const ar=arcPath(X(0),Y(0),X(L),Y(0),X(L),Y(H),Math.min(34,L*sc*0.3));
+  s+='<path d="'+ar.path+'" fill="none" stroke="'+AMB+'" stroke-width="2"/>';
+  s+='<text x="'+ar.lx+'" y="'+(ar.ly+4)+'" fill="'+AMB+'" font-size="13" font-weight="700" text-anchor="middle">α='+fmtAng(ang)+'</text>';
+  s+='<text x="'+(X(L)+8)+'" y="'+(Y(H)+H*sc/2+4)+'" fill="'+GRY+'" font-size="12.5" font-weight="700">H='+fmtN(H,2)+'</text>';
+  s+='<text x="'+X(L/2)+'" y="'+(Y(0)+20)+'" fill="'+GRY+'" font-size="12.5" font-weight="700" text-anchor="middle">L='+fmtN(L,2)+'</text>';
+  return svgWrap(W,Hg,s);
+}
+function svgTri(a,b,c,al,beta,hh){
+  const sc=Math.min(320/b,230/a);
+  const PL=54,PR=28,PT=26,PB=42;
+  const W=PL+b*sc+PR,Hg=PT+a*sc+PB;
+  const X=function(x){return PL+x*sc;},Y=function(y){return Hg-PB-y*sc;};
+  const Cx=X(0),Cy=Y(0),Ax=X(b),Ay=Y(0),Bx=X(0),By=Y(a);
+  let s='';
+  s+='<line x1="'+Cx+'" y1="'+Cy+'" x2="'+Bx+'" y2="'+By+'" stroke="'+GRY+'" stroke-width="2.5"/>';
+  s+='<line x1="'+Cx+'" y1="'+Cy+'" x2="'+Ax+'" y2="'+Ay+'" stroke="'+GRY+'" stroke-width="2.5"/>';
+  s+='<line x1="'+Bx+'" y1="'+By+'" x2="'+Ax+'" y2="'+Ay+'" stroke="'+AMB+'" stroke-width="4" stroke-linecap="round"/>';
+  const q=14;
+  s+='<path d="M '+(Cx+q)+' '+Cy+' L '+(Cx+q)+' '+(Cy-q)+' L '+Cx+' '+(Cy-q)+'" fill="none" stroke="'+GRY+'" stroke-width="2"/>';
+  const t=a*a/(c*c),Fx=X(t*b),Fy=Y(a*(1-t));
+  s+='<line x1="'+Cx+'" y1="'+Cy+'" x2="'+Fx+'" y2="'+Fy+'" stroke="'+ORG+'" stroke-width="2" stroke-dasharray="6 5"/>';
+  const arA=arcPath(Ax,Ay,Cx,Cy,Bx,By,Math.min(30,b*sc*0.28));
+  s+='<path d="'+arA.path+'" fill="none" stroke="'+AMB+'" stroke-width="2"/>';
+  s+='<text x="'+arA.lx+'" y="'+(arA.ly+4)+'" fill="'+AMB+'" font-size="12.5" font-weight="700" text-anchor="middle">α</text>';
+  const arB=arcPath(Bx,By,Cx,Cy,Ax,Ay,Math.min(26,a*sc*0.26));
+  s+='<path d="'+arB.path+'" fill="none" stroke="'+AMB+'" stroke-width="2"/>';
+  s+='<text x="'+arB.lx+'" y="'+(arB.ly+4)+'" fill="'+AMB+'" font-size="12.5" font-weight="700" text-anchor="middle">β</text>';
+  s+='<text x="'+(Cx-8)+'" y="'+((Cy+By)/2+4)+'" fill="'+AMB+'" font-size="13" font-weight="800" text-anchor="end">a</text>';
+  s+='<text x="'+((Cx+Ax)/2)+'" y="'+(Cy+18)+'" fill="'+AMB+'" font-size="13" font-weight="800" text-anchor="middle">b</text>';
+  const mx=(Bx+Ax)/2,my=(By+Ay)/2;
+  let nx=(Ay-By),ny=(Bx-Ax);
+  const nl=Math.hypot(nx,ny)||1;
+  nx/=nl;ny/=nl;
+  if(nx*(mx-Cx)+ny*(my-Cy)<0){nx=-nx;ny=-ny;}
+  s+='<text x="'+(mx+nx*16)+'" y="'+(my+ny*16+4)+'" fill="'+AMB+'" font-size="13" font-weight="800" text-anchor="middle">c</text>';
+  const hx=(Cx+Fx)/2,hy=(Cy+Fy)/2;
+  const dx=Fx-Cx,dy=Fy-Cy,dl=Math.hypot(dx,dy)||1;
+  s+='<text x="'+(hx+(-dy/dl)*13)+'" y="'+(hy+(dx/dl)*13+4)+'" fill="'+ORG+'" font-size="12" font-weight="700" text-anchor="middle">h</text>';
+  return svgWrap(W,Hg,s);
+}
+function svgFun(ang){
+  const sn=Math.sin(ang*RAD),cs=Math.cos(ang*RAD);
+  if(sn<1e-4||cs<1e-4)return '';
+  const a=sn*100,b=cs*100;
+  return svgTri(a,b,100,ang,90-ang,a*b/100).replace('>a<','>sin·100<').replace('>b<','>cos·100<').replace('>c<','>100<');
+}
+
 /* ===== UI: zakładki ===== */
 const tabs=[['tabKlin','secKlin'],['tabFun','secFun'],['tabTri','secTri']];
 tabs.forEach(([tb,sc])=>{
@@ -251,13 +323,13 @@ KLEN.forEach(L=>{
   ch.addEventListener('click',()=>{document.getElementById('kLen').value=L;doKlin();});
   kChips.appendChild(ch);
 });
-function doKlin(){
+function doKlin(silent){
   hideErrs(['kErr']);hide(['kOut']);
   const ang=parseAng(document.getElementById('kAng').value);
-  if(ang==null){showErr('kErr','Nie rozumiem kąta. Wpisz np. 30,5 / 30 30 / 30°30′15″.');return;}
-  if(isNaN(ang)||!(ang>=0&&ang<=90)){showErr('kErr','Kąt musi być z zakresu 0–90°.');return;}
+  if(ang==null){if(silent)return;showErr('kErr','Nie rozumiem kąta. Wpisz np. 30,5 / 30 30 / 30°30′15″.');return;}
+  if(isNaN(ang)||!(ang>=0&&ang<=90)){if(silent)return;showErr('kErr','Kąt musi być z zakresu 0–90°.');return;}
   const L=parseNum(document.getElementById('kLen').value);
-  if(!(L>0)){showErr('kErr','Długość klina L musi być większa od zera.');return;}
+  if(!(L>0)){if(silent)return;showErr('kErr','Długość klina L musi być większa od zera.');return;}
   const H=klinH(L,ang);
   show('kOut',
     '<div class="card">'+
@@ -265,42 +337,47 @@ function doKlin(){
       '<div class="big">H = <b>'+fmtN(H,3)+' mm</b></div>'+
       '<div class="sub">dokładnie: '+fmtN(H,5)+' mm · sin α = '+fmt6(Math.sin(ang*RAD))+'<br>'+
       'α = '+fmtAng(ang)+' = '+dms(ang)+' · H = L · sin α</div></div>'+
+      '<div class="panel" style="margin-top:.6rem">'+svgKlin(ang,L,H)+'</div>'+
     '</div>');
   saveVal('kAng',document.getElementById('kAng').value);
   saveVal('kLen',document.getElementById('kLen').value);
 }
-document.getElementById('kGo').addEventListener('click',doKlin);
-document.getElementById('kAng').addEventListener('keydown',e=>{if(e.key==='Enter')doKlin();});
+document.getElementById('kGo').addEventListener('click',()=>doKlin(false));
+document.getElementById('kAng').addEventListener('keydown',e=>{if(e.key==='Enter')doKlin(false);});
+['kAng','kLen'].forEach(id=>document.getElementById(id).addEventListener('input',()=>doKlin(true)));
 
-function doRev(){
+function doRev(silent){
   hideErrs(['rErr']);hide(['rOut']);
   const H=parseNum(document.getElementById('rH').value);
   const L=parseNum(document.getElementById('rLen').value);
-  if(!(H>0)){showErr('rErr','Wysokość H musi być większa od zera.');return;}
-  if(!(L>0)){showErr('rErr','Długość klina L musi być większa od zera.');return;}
-  if(H>L){showErr('rErr','H nie może być większe od L — sin kąta nie przekroczy 1.');return;}
+  if(!(H>0)){if(silent)return;showErr('rErr','Wysokość H musi być większa od zera.');return;}
+  if(!(L>0)){if(silent)return;showErr('rErr','Długość klina L musi być większa od zera.');return;}
+  if(H>L){if(silent)return;showErr('rErr','H nie może być większe od L — sin kąta nie przekroczy 1.');return;}
   const al=klinA(H,L);
   show('rOut',
     '<div class="card">'+
       '<div class="panel"><div class="ttl">KĄT POCHYLENIA <span class="cls">H/L = '+fmtN(H,2)+'/'+fmtN(L,2)+'</span></div>'+
       '<div class="big">α = <b>'+fmtAng(al)+'</b></div>'+
       '<div class="sub">dokładnie: '+dms(al)+' (stopnie-minuty-sekundy) · sin α = '+fmt6(H/L)+'</div></div>'+
+      '<div class="panel" style="margin-top:.6rem">'+svgKlin(al,L,H)+'</div>'+
     '</div>');
   saveVal('rH',document.getElementById('rH').value);
   saveVal('rLen',document.getElementById('rLen').value);
 }
-document.getElementById('rGo').addEventListener('click',doRev);
-document.getElementById('rH').addEventListener('keydown',e=>{if(e.key==='Enter')doRev();});
+document.getElementById('rGo').addEventListener('click',()=>doRev(false));
+document.getElementById('rH').addEventListener('keydown',e=>{if(e.key==='Enter')doRev(false);});
+['rH','rLen'].forEach(id=>document.getElementById(id).addEventListener('input',()=>doRev(true)));
 
 /* ===== UI: FUNKCJE ===== */
-function doFun(){
+function doFun(silent){
   hideErrs(['fErr']);hide(['fOut']);
   const ang=parseAng(document.getElementById('fAng').value);
-  if(ang==null){showErr('fErr','Nie rozumiem kąta. Wpisz np. 36,52 / 36°31′12″.');return;}
-  if(isNaN(ang)||!(ang>=0&&ang<=90)){showErr('fErr','Kąt musi być z zakresu 0–90°.');return;}
+  if(ang==null){if(silent)return;showErr('fErr','Nie rozumiem kąta. Wpisz np. 36,52 / 36°31′12″.');return;}
+  if(isNaN(ang)||!(ang>=0&&ang<=90)){if(silent)return;showErr('fErr','Kąt musi być z zakresu 0–90°.');return;}
   const s=Math.sin(ang*RAD),c=Math.cos(ang*RAD);
   const t=Math.abs(Math.cos(ang*RAD))<1e-12?Infinity:Math.tan(ang*RAD);
   const ct=Math.abs(Math.sin(ang*RAD))<1e-12?Infinity:c/s;
+  const svg=svgFun(ang);
   show('fOut',
     '<div class="card">'+
       '<div class="grid2">'+
@@ -310,11 +387,13 @@ function doFun(){
           '<div class="big">sin: <b>'+fmtN(s*100,3)+' mm</b><br>cos: '+fmtN(c*100,3)+' mm<br>tan: '+fmtN(t*100,3)+' mm</div>'+
           '<div class="sub">Na podstawie 100 mm: przyprostokątna (sin), rzut poziomy (cos), podniesienie (tan). Na innej podstawie przelicz proporcjonalnie.</div></div>'+
       '</div>'+
+      (svg?'<div class="panel" style="margin-top:.6rem">'+svg+'</div>':'')+
     '</div>');
   saveVal('fAng',document.getElementById('fAng').value);
 }
-document.getElementById('fGo').addEventListener('click',doFun);
-document.getElementById('fAng').addEventListener('keydown',e=>{if(e.key==='Enter')doFun();});
+document.getElementById('fGo').addEventListener('click',()=>doFun(false));
+document.getElementById('fAng').addEventListener('keydown',e=>{if(e.key==='Enter')doFun(false);});
+document.getElementById('fAng').addEventListener('input',()=>doFun(true));
 
 /* ===== UI: TRÓJKĄT ===== */
 const TPRE=[['3·4·5',()=>{setT({a:'3',b:'4'});}],['30–60–90',()=>{setT({a:'30',c:'60'});}],['45°',()=>{setT({a:'25',al:'45'});}]];
@@ -333,7 +412,7 @@ TPRE.forEach(([lab,fn])=>{
   ch.addEventListener('click',fn);
   tChips.appendChild(ch);
 });
-function doTri(){
+function doTri(silent){
   hideErrs(['tErr']);hide(['tOut']);
   const o={
     a:parseNum(document.getElementById('tA').value),
@@ -341,9 +420,9 @@ function doTri(){
     c:parseNum(document.getElementById('tC').value),
     al:parseAng(document.getElementById('tAl').value)
   };
-  if(o.al!=null&&isNaN(o.al)){showErr('tErr','Nie rozumiem kąta α. Wpisz np. 30 / 30 30 / 30°30′15″.');return;}
+  if(o.al!=null&&isNaN(o.al)){if(silent)return;showErr('tErr','Nie rozumiem kąta α. Wpisz np. 30 / 30 30 / 30°30′15″.');return;}
   const r=solveTri(o);
-  if(r.err){showErr('tErr',r.err);return;}
+  if(r.err){if(silent)return;showErr('tErr',r.err);return;}
   show('tOut',
     '<div class="card">'+
       '<div class="grid2">'+
@@ -356,14 +435,16 @@ function doTri(){
           '<div class="big">P = <b>'+fmtN(r.P,3)+' mm²</b><br>h = <b>'+fmtN(r.h,4)+' mm</b></div>'+
           '<div class="sub">P — pole trójkąta (a·b/2), h — wysokość z α na c (a·b/c).</div></div>'+
       '</div>'+
+      '<div class="panel" style="margin-top:.6rem">'+svgTri(r.a,r.b,r.c,r.al,r.beta,r.h)+'</div>'+
     '</div>');
   saveVal('tA',document.getElementById('tA').value);
   saveVal('tB',document.getElementById('tB').value);
   saveVal('tC',document.getElementById('tC').value);
   saveVal('tAl',document.getElementById('tAl').value);
 }
-document.getElementById('tGo').addEventListener('click',doTri);
-['tA','tB','tC','tAl'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doTri();}));
+document.getElementById('tGo').addEventListener('click',()=>doTri(false));
+['tA','tB','tC','tAl'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doTri(false);}));
+['tA','tB','tC','tAl'].forEach(id=>document.getElementById(id).addEventListener('input',()=>doTri(true)));
 
 /* ===== LOCALSTORAGE ===== */
 function saveVal(k,v){
