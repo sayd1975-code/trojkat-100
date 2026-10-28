@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#020617">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.json">
+<title>Trójkąt 100</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { font-size:16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background:#020617; color:#e2e8f0; min-height:100vh;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  header {
+    background:linear-gradient(135deg,#b45309 0%,#d97706 45%,#fbbf24 100%);
+    padding:1.1rem 1rem 1rem; border-bottom:3px solid #78350f;
+  }
+  header h1 { color:#1c1917; font-size:1.35rem; font-weight:800; letter-spacing:.3px; }
+  header p  { color:#292013; font-size:.85rem; margin-top:.15rem; font-weight:600; }
+  nav { display:flex; gap:.4rem; padding:.6rem .8rem; background:#0f172a; position:sticky; top:0; z-index:5; border-bottom:1px solid #334155; }
+  nav button {
+    flex:1; padding:.6rem .3rem; border:1px solid #334155; border-radius:.6rem;
+    background:#1e293b; color:#94a3b8; font-size:.85rem; font-weight:700; cursor:pointer;
+  }
+  nav button.on { background:#fbbf24; color:#1c1917; border-color:#d97706; }
+  main { padding:.9rem .8rem 2rem; max-width:680px; margin:0 auto; }
+  .card { background:#0f172a; border:1px solid #1e293b; border-radius:.8rem; padding:.9rem; margin-bottom:.8rem; }
+  .card h2 { font-size:.8rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.5px; margin-bottom:.55rem; }
+  label { font-size:.8rem; color:#94a3b8; display:block; margin-bottom:.3rem; font-weight:600; }
+  label.mt { margin-top:.6rem; }
+  input[type=text] {
+    width:100%; padding:.75rem .8rem; font-size:1.25rem; font-weight:700;
+    background:#1e293b; border:2px solid #334155; border-radius:.6rem; color:#fbbf24;
+    font-variant-numeric:tabular-nums; outline:none;
+  }
+  input[type=text]:focus { border-color:#fbbf24; }
+  .row { display:flex; gap:.55rem; align-items:stretch; }
+  .row input { flex:1; }
+  button.go {
+    padding:0 1.2rem; background:#ea580c; color:#fff7ed; border:none; border-radius:.6rem;
+    font-size:1rem; font-weight:800; cursor:pointer; white-space:nowrap;
+  }
+  button.go:active { background:#c2410c; }
+  button.go.full { width:100%; margin-top:.7rem; padding:.7rem 0; }
+  .hint { font-size:.72rem; color:#64748b; margin-top:.35rem; line-height:1.4; }
+  .chips { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.6rem; }
+  .chip {
+    background:#1e293b; border:1px solid #334155; color:#fcd34d; border-radius:999px;
+    padding:.3rem .6rem; font-size:.72rem; font-weight:700; cursor:pointer;
+  }
+  .chip:active { background:#334155; }
+  .chip small { color:#94a3b8; font-weight:600; margin-left:.25rem; }
+  .res { display:none; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+  @media (max-width:480px){ .grid2 { grid-template-columns:1fr; } }
+  .panel { background:#1e293b; border:1px solid #334155; border-radius:.7rem; padding:.75rem; }
+  .panel .ttl { font-size:.75rem; font-weight:800; color:#fbbf24; margin-bottom:.4rem; display:flex; justify-content:space-between; gap:.3rem; }
+  .panel .cls { color:#94a3b8; font-size:.7rem; }
+  .big { font-size:1.05rem; font-weight:800; color:#e2e8f0; font-variant-numeric:tabular-nums; line-height:1.45; }
+  .big b { color:#fbbf24; }
+  .sub { font-size:.72rem; color:#94a3b8; margin-top:.3rem; line-height:1.5; }
+  .err { color:#f87171; font-size:.85rem; font-weight:600; margin-top:.5rem; display:none; }
+  .ok-note { font-size:.68rem; color:#475569; margin-top:.5rem; line-height:1.5; }
+  footer { text-align:center; font-size:.68rem; color:#475569; padding:1rem .5rem 1.4rem; line-height:1.6; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📐 Trójkąt 100</h1>
+  <p>Kliny sinusowe · funkcje kąta · trójkąt prostokątny</p>
+</header>
+
+<nav>
+  <button id="tabKlin" class="on">Klin</button>
+  <button id="tabFun">Funkcje</button>
+  <button id="tabTri">Trójkąt</button>
+</nav>
+
+<main>
+  <!-- ===== KLIN SINUSOWY ===== -->
+  <section id="secKlin">
+    <div class="card">
+      <h2>Klin sinusowy: kąt → wysokość klocków</h2>
+      <label for="kAng">Kąt pochylenia α</label>
+      <div class="row">
+        <input type="text" id="kAng" placeholder="np. 30,5 albo 30°30′" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
+        <button class="go" id="kGo">Licz</button>
+      </div>
+      <label class="mt" for="kLen">Długość klina L (mm)</label>
+      <input type="text" id="kLen" value="100" autocomplete="off" spellcheck="false" inputmode="decimal">
+      <div class="chips" id="kChips"></div>
+      <div class="hint">Wysokość klocków H = L · sin α. Kąt wpisuj jak na rysunku: 30,5 / 30 30 / 30°30′15″ (stopnie, minuty, sekundy).</div>
+      <div class="err" id="kErr"></div>
+    </div>
+    <div class="res" id="kOut"></div>
+
+    <div class="card">
+      <h2>W drugą stronę: klocki → kąt</h2>
+      <label for="rH">Wysokość klocków H (mm)</label>
+      <input type="text" id="rH" placeholder="np. 50" autocomplete="off" spellcheck="false" inputmode="decimal">
+      <label class="mt" for="rLen">Długość klina L (mm)</label>
+      <input type="text" id="rLen" value="100" autocomplete="off" spellcheck="false" inputmode="decimal">
+      <div class="hint">Mam stos klocków na klinie — jaki kąt ustawia maszyna? α = arcsin(H / L).</div>
+      <div class="err" id="rErr"></div>
+    </div>
+    <div class="res" id="rOut"></div>
+  </section>
+
+  <!-- ===== FUNKCJE KĄTA ===== -->
+  <section id="secFun" style="display:none">
+    <div class="card">
+      <h2>Funkcje kąta</h2>
+      <div class="row">
+        <input type="text" id="fAng" placeholder="np. 36,52 / 36°31′12″" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
+        <button class="go" id="fGo">Licz</button>
+      </div>
+      <div class="hint">sin, cos, tan, cot w jednej ręce + wartości na 100 mm podstawy (stąd „Trójkąt 100”).</div>
+      <div class="err" id="fErr"></div>
+    </div>
+    <div class="res" id="fOut"></div>
+  </section>
+
+  <!-- ===== TRÓJKĄT PROSTOKĄTNY ===== -->
+  <section id="secTri" style="display:none">
+    <div class="card">
+      <h2>Trójkąt prostokątny — podaj dokładnie 2 dane</h2>
+      <label for="tA">a — przyprostokątna (mm)</label>
+      <input type="text" id="tA" placeholder="—" autocomplete="off" spellcheck="false" inputmode="decimal">
+      <label class="mt" for="tB">b — przyprostokątna (mm)</label>
+      <input type="text" id="tB" placeholder="—" autocomplete="off" spellcheck="false" inputmode="decimal">
+      <label class="mt" for="tC">c — przeciwprostokątna (mm)</label>
+      <input type="text" id="tC" placeholder="—" autocomplete="off" spellcheck="false" inputmode="decimal">
+      <label class="mt" for="tAl">α — kąt naprzeciw a</label>
+      <input type="text" id="tAl" placeholder="np. 30 / 30°30′" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
+      <button class="go full" id="tGo">Licz</button>
+      <div class="chips" id="tChips"></div>
+      <div class="hint">β = 90° − α. Kąt α leży naprzeciw boku a, β naprzeciw b. Kąty: stopnie dziesiętnie albo stopnie-minuty-sekundy.</div>
+      <div class="err" id="tErr"></div>
+    </div>
+    <div class="res" id="tOut"></div>
+  </section>
+</main>
+
+<footer>
+  Trygonometria warsztatowa: kliny sinusowe 100–300 mm, funkcje kąta, trójkąt prostokątny.<br>
+  Apka offline (PWA) · wersja 1.0
+</footer>
+
+<script>
+'use strict';
+/* ===== SILNIK TRYGNOMETRYCZNY — zweryfikowany testami krzyżowymi 28.10.2026 ===== */
+const RAD=Math.PI/180;
+
+function parseAng(s){
+  const nums=String(s==null?'':s).replace(/,/g,'.').match(/\d+(?:\.\d+)?/g);
+  if(!nums||nums.length===0)return null;
+  const d=parseFloat(nums[0]);
+  const m=nums.length>1?parseFloat(nums[1]):0;
+  const sec=nums.length>2?parseFloat(nums[2]):0;
+  if(!isFinite(d)||m<0||sec<0||m>=60||sec>=60)return NaN;
+  const sign=d<0?-1:1;
+  return sign*(Math.abs(d)+m/60+sec/3600);
+}
+function dms(v){
+  const sgn=v<0?'−':'';
+  let a=Math.abs(v);
+  let d=Math.floor(a);
+  let mf=(a-d)*60;
+  let m=Math.floor(mf);
+  let sec=Math.round((mf-m)*60);
+  if(sec>=60){sec-=60;m++;}
+  if(m>=60){m-=60;d++;}
+  return sgn+d+'°'+m+'′'+sec+'″';
+}
+function fmtN(v,dec){
+  if(!isFinite(v))return '—';
+  let s=Math.abs(v).toFixed(dec);
+  s=s.replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+  return (v<0?'−':'')+s.replace('.',',');
+}
+function fmtAng(v){return fmtN(v,5)+'°';}
+function fmt6(v){return isFinite(v)?v.toFixed(6).replace('.',','):'—';}
+function parseNum(s){
+  const x=parseFloat(String(s==null?'':s).replace(',','.').replace(/^\s+|\s+$/g,''));
+  return isFinite(x)?x:null;
+}
+function klinH(L,ang){return L*Math.sin(ang*RAD);}
+function klinA(H,L){return Math.asin(H/L)/RAD;}
+
+function solveTri(o){ // o: {a,b,c,al} — dokładnie 2 podane, reszta null
+  const g=[];
+  ['a','b','c','al'].forEach(k=>{if(o[k]!=null)g.push(k);});
+  if(g.length!==2)return{err:'Podaj dokładnie 2 dane — resztę policzę. (Puste pola pomijam.)'};
+  let a=o.a,b=o.b,c=o.c,al=o.al;
+  if(a!=null&&a<=0)return{err:'Bok a musi być większy od zera.'};
+  if(b!=null&&b<=0)return{err:'Bok b musi być większy od zera.'};
+  if(c!=null&&c<=0)return{err:'Przeciwprostokątna c musi być większa od zera.'};
+  if(al!=null&&!(al>0&&al<90))return{err:'Kąt α musi być z zakresu 0–90° (trójkąt prostokątny).'};
+  if(a!=null&&b!=null){
+    c=Math.hypot(a,b);
+    al=Math.atan2(a,b)/RAD;
+  }else if(a!=null&&c!=null){
+    if(c<a)return{err:'Przeciwprostokątna c musi być największym bokiem (c ≥ a).'};
+    b=Math.sqrt(c*c-a*a);
+    al=Math.asin(a/c)/RAD;
+  }else if(b!=null&&c!=null){
+    if(c<b)return{err:'Przeciwprostokątna c musi być największym bokiem (c ≥ b).'};
+    a=Math.sqrt(c*c-b*b);
+    al=Math.acos(b/c)/RAD;
+  }else if(a!=null&&al!=null){
+    b=a/Math.tan(al*RAD);
+    c=a/Math.sin(al*RAD);
+  }else if(b!=null&&al!=null){
+    a=b*Math.tan(al*RAD);
+    c=b/Math.cos(al*RAD);
+  }else if(c!=null&&al!=null){
+    a=c*Math.sin(al*RAD);
+    b=c*Math.cos(al*RAD);
+  }
+  const beta=90-al;
+  return {a:a,b:b,c:c,al:al,beta:beta,P:a*b/2,h:a*b/c};
+}
+
+/* ===== UI: zakładki ===== */
+const tabs=[['tabKlin','secKlin'],['tabFun','secFun'],['tabTri','secTri']];
+tabs.forEach(([tb,sc])=>{
+  document.getElementById(tb).addEventListener('click',()=>{
+    tabs.forEach(([t2,s2])=>{
+      document.getElementById(t2).classList.toggle('on',t2===tb);
+      document.getElementById(s2).style.display=(s2===sc)?'':'none';
+    });
+  });
+});
+
+function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.style.display='block';}
+function hideErrs(ids){ids.forEach(i=>document.getElementById(i).style.display='none');}
+function show(id,html){const o=document.getElementById(id);o.innerHTML=html;o.style.display='block';}
+function hide(ids){ids.forEach(i=>document.getElementById(i).style.display='none');}
+
+/* ===== UI: KLIN ===== */
+const KLEN=[100,200,300];
+const kChips=document.getElementById('kChips');
+KLEN.forEach(L=>{
+  const ch=document.createElement('button');
+  ch.className='chip';ch.textContent='L = '+L+' mm';
+  ch.addEventListener('click',()=>{document.getElementById('kLen').value=L;doKlin();});
+  kChips.appendChild(ch);
+});
+function doKlin(){
+  hideErrs(['kErr']);hide(['kOut']);
+  const ang=parseAng(document.getElementById('kAng').value);
+  if(ang==null){showErr('kErr','Nie rozumiem kąta. Wpisz np. 30,5 / 30 30 / 30°30′15″.');return;}
+  if(isNaN(ang)||!(ang>=0&&ang<=90)){showErr('kErr','Kąt musi być z zakresu 0–90°.');return;}
+  const L=parseNum(document.getElementById('kLen').value);
+  if(!(L>0)){showErr('kErr','Długość klina L musi być większa od zera.');return;}
+  const H=klinH(L,ang);
+  show('kOut',
+    '<div class="card">'+
+      '<div class="panel"><div class="ttl">WYSOKOŚĆ KLOCKÓW <span class="cls">L = '+fmtN(L,2)+' mm</span></div>'+
+      '<div class="big">H = <b>'+fmtN(H,3)+' mm</b></div>'+
+      '<div class="sub">dokładnie: '+fmtN(H,5)+' mm · sin α = '+fmt6(Math.sin(ang*RAD))+'<br>'+
+      'α = '+fmtAng(ang)+' = '+dms(ang)+' · H = L · sin α</div></div>'+
+    '</div>');
+  saveVal('kAng',document.getElementById('kAng').value);
+  saveVal('kLen',document.getElementById('kLen').value);
+}
+document.getElementById('kGo').addEventListener('click',doKlin);
+document.getElementById('kAng').addEventListener('keydown',e=>{if(e.key==='Enter')doKlin();});
+
+function doRev(){
+  hideErrs(['rErr']);hide(['rOut']);
+  const H=parseNum(document.getElementById('rH').value);
+  const L=parseNum(document.getElementById('rLen').value);
+  if(!(H>0)){showErr('rErr','Wysokość H musi być większa od zera.');return;}
+  if(!(L>0)){showErr('rErr','Długość klina L musi być większa od zera.');return;}
+  if(H>L){showErr('rErr','H nie może być większe od L — sin kąta nie przekroczy 1.');return;}
+  const al=klinA(H,L);
+  show('rOut',
+    '<div class="card">'+
+      '<div class="panel"><div class="ttl">KĄT POCHYLENIA <span class="cls">H/L = '+fmtN(H,2)+'/'+fmtN(L,2)+'</span></div>'+
+      '<div class="big">α = <b>'+fmtAng(al)+'</b></div>'+
+      '<div class="sub">dokładnie: '+dms(al)+' (stopnie-minuty-sekundy) · sin α = '+fmt6(H/L)+'</div></div>'+
+    '</div>');
+  saveVal('rH',document.getElementById('rH').value);
+  saveVal('rLen',document.getElementById('rLen').value);
+}
+document.getElementById('rGo').addEventListener('click',doRev);
+document.getElementById('rH').addEventListener('keydown',e=>{if(e.key==='Enter')doRev();});
+
+/* ===== UI: FUNKCJE ===== */
+function doFun(){
+  hideErrs(['fErr']);hide(['fOut']);
+  const ang=parseAng(document.getElementById('fAng').value);
+  if(ang==null){showErr('fErr','Nie rozumiem kąta. Wpisz np. 36,52 / 36°31′12″.');return;}
+  if(isNaN(ang)||!(ang>=0&&ang<=90)){showErr('fErr','Kąt musi być z zakresu 0–90°.');return;}
+  const s=Math.sin(ang*RAD),c=Math.cos(ang*RAD);
+  const t=Math.abs(Math.cos(ang*RAD))<1e-12?Infinity:Math.tan(ang*RAD);
+  const ct=Math.abs(Math.sin(ang*RAD))<1e-12?Infinity:c/s;
+  show('fOut',
+    '<div class="card">'+
+      '<div class="grid2">'+
+        '<div class="panel"><div class="ttl">FUNKCJE <span class="cls">α = '+fmtAng(ang)+'</span></div>'+
+          '<div class="big">sin α = <b>'+fmt6(s)+'</b><br>cos α = '+fmt6(c)+'<br>tan α = '+fmt6(t)+'<br>cot α = '+fmt6(ct)+'</div></div>'+
+        '<div class="panel"><div class="ttl">NA 100 MM PODSTAWY <span class="cls">'+dms(ang)+'</span></div>'+
+          '<div class="big">sin: <b>'+fmtN(s*100,3)+' mm</b><br>cos: '+fmtN(c*100,3)+' mm<br>tan: '+fmtN(t*100,3)+' mm</div>'+
+          '<div class="sub">Na podstawie 100 mm: przyprostokątna (sin), rzut poziomy (cos), podniesienie (tan). Na innej podstawie przelicz proporcjonalnie.</div></div>'+
+      '</div>'+
+    '</div>');
+  saveVal('fAng',document.getElementById('fAng').value);
+}
+document.getElementById('fGo').addEventListener('click',doFun);
+document.getElementById('fAng').addEventListener('keydown',e=>{if(e.key==='Enter')doFun();});
+
+/* ===== UI: TRÓJKĄT ===== */
+const TPRE=[['3·4·5',()=>{setT({a:'3',b:'4'});}],['30–60–90',()=>{setT({a:'30',c:'60'});}],['45°',()=>{setT({a:'25',al:'45'});}]];
+function setT(v){
+  ['tA','tB','tC','tAl'].forEach(id=>document.getElementById(id).value='');
+  if(v.a)document.getElementById('tA').value=v.a;
+  if(v.b)document.getElementById('tB').value=v.b;
+  if(v.c)document.getElementById('tC').value=v.c;
+  if(v.al)document.getElementById('tAl').value=v.al;
+  doTri();
+}
+const tChips=document.getElementById('tChips');
+TPRE.forEach(([lab,fn])=>{
+  const ch=document.createElement('button');
+  ch.className='chip';ch.textContent=lab;
+  ch.addEventListener('click',fn);
+  tChips.appendChild(ch);
+});
+function doTri(){
+  hideErrs(['tErr']);hide(['tOut']);
+  const o={
+    a:parseNum(document.getElementById('tA').value),
+    b:parseNum(document.getElementById('tB').value),
+    c:parseNum(document.getElementById('tC').value),
+    al:parseAng(document.getElementById('tAl').value)
+  };
+  if(o.al!=null&&isNaN(o.al)){showErr('tErr','Nie rozumiem kąta α. Wpisz np. 30 / 30 30 / 30°30′15″.');return;}
+  const r=solveTri(o);
+  if(r.err){showErr('tErr',r.err);return;}
+  show('tOut',
+    '<div class="card">'+
+      '<div class="grid2">'+
+        '<div class="panel"><div class="ttl">BOKI <span class="cls">mm</span></div>'+
+          '<div class="big">a = <b>'+fmtN(r.a,4)+'</b><br>b = <b>'+fmtN(r.b,4)+'</b><br>c = <b>'+fmtN(r.c,4)+'</b></div></div>'+
+        '<div class="panel"><div class="ttl">KĄTY <span class="cls">β = 90° − α</span></div>'+
+          '<div class="big">α = <b>'+fmtAng(r.al)+'</b><br>β = <b>'+fmtAng(r.beta)+'</b></div>'+
+          '<div class="sub">α = '+dms(r.al)+'<br>β = '+dms(r.beta)+'</div></div>'+
+        '<div class="panel"><div class="ttl">DODATKOWO</div>'+
+          '<div class="big">P = <b>'+fmtN(r.P,3)+' mm²</b><br>h = <b>'+fmtN(r.h,4)+' mm</b></div>'+
+          '<div class="sub">P — pole trójkąta (a·b/2), h — wysokość z α na c (a·b/c).</div></div>'+
+      '</div>'+
+    '</div>');
+  saveVal('tA',document.getElementById('tA').value);
+  saveVal('tB',document.getElementById('tB').value);
+  saveVal('tC',document.getElementById('tC').value);
+  saveVal('tAl',document.getElementById('tAl').value);
+}
+document.getElementById('tGo').addEventListener('click',doTri);
+['tA','tB','tC','tAl'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doTri();}));
+
+/* ===== LOCALSTORAGE ===== */
+function saveVal(k,v){
+  try{
+    const o=JSON.parse(localStorage.getItem('trojkat-vals')||'{}');
+    o[k]=v;localStorage.setItem('trojkat-vals',JSON.stringify(o));
+  }catch(e){}
+}
+(function(){
+  try{
+    const o=JSON.parse(localStorage.getItem('trojkat-vals')||'{}');
+    ['kAng','kLen','rH','rLen','fAng','tA','tB','tC','tAl'].forEach(k=>{
+      if(o[k]!=null)document.getElementById(k==='kAng'?'kAng':k).value=o[k];
+    });
+    if(o.kAng)doKlin();
+    if(o.rH)doRev();
+    if(o.fAng)doFun();
+    if((o.tA&&o.tB)||(o.tA&&o.tC)||(o.tB&&o.tC)||(o.tAl&&(o.tA||o.tB||o.tC)))doTri();
+  }catch(e){}
+})();
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>

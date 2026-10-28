@@ -1,0 +1,26 @@
+{
+  "name": "Trójkąt 100",
+  "short_name": "Trójkąt",
+  "description": "Trygonometria warsztatowa: kliny sinusowe (kąt/wysokość klocków), funkcje kąta sin/cos/tan/cot na 100 mm podstawy, trójkąt prostokątny z 2 danych",
+  "lang": "pl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#020617",
+  "background_color": "#020617",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-mask.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
